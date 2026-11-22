@@ -199,3 +199,5 @@ main/digital-human/wakeword_runtime/models
 main/digital-human/wakeword_runtime/sherpa-onnx-kws-zipformer-wenetspeech-3.3M-2024-01-01
 sherpa-onnx-kws-zipformer-wenetspeech-3.3M-2024-01-01.tar.bz2
 main/xiaozhi-server/models/piper/*.onnx.json
+main/xiaozhi-server/models/piper/g2pW/
+main/xiaozhi-server/models/piper/g2pw.tar.gz

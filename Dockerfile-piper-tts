@@ -1,7 +1,11 @@
 FROM docker.m.daocloud.io/library/python:3.11-slim
 
-RUN pip install --no-cache-dir 'piper-tts[http]==1.8.0'
+RUN pip install --no-cache-dir 'piper-tts[http,zh]==1.8.0'
+RUN python -c "from transformers import AutoTokenizer; AutoTokenizer.from_pretrained('bert-base-chinese')"
+
+ENV HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
 
 WORKDIR /models
+COPY piper-start.py /opt/piper-start.py
 EXPOSE 5000
-CMD ["python", "-m", "piper.http_server", "-m", "zh_CN-huayan-medium", "--data-dir", "/models", "--host", "0.0.0.0", "--port", "5000"]
+CMD ["python", "/opt/piper-start.py"]

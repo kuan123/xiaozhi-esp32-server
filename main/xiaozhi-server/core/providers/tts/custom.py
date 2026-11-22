@@ -18,6 +18,7 @@ class TTSProvider(TTSProviderBase):
         self.audio_file_type = config.get("format", "wav")
         self.output_file = config.get("output_dir", "tmp/")
         self.params = config.get("params")
+        self.voice = config.get("private_voice") or config.get("voice", "")
 
         if isinstance(self.params, str):
             try:
@@ -33,8 +34,8 @@ class TTSProvider(TTSProviderBase):
     async def text_to_speak(self, text, output_file):
         request_params = {}
         for k, v in self.params.items():
-            if isinstance(v, str) and "{prompt_text}" in v:
-                v = v.replace("{prompt_text}", text)
+            if isinstance(v, str):
+                v = v.replace("{prompt_text}", text).replace("{voice}", self.voice)
             request_params[k] = v
 
         if self.method.upper() == "POST":

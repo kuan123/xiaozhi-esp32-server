@@ -4,12 +4,20 @@
 
 ## 模型文件
 
-下载以下两个文件到 `main/xiaozhi-server/models/piper/`（模型文件不提交到 Git）：
+下载以下模型和配置文件到 `main/xiaozhi-server/models/piper/`（模型文件不提交到 Git）：
 
 - `https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/zh/zh_CN/huayan/medium/zh_CN-huayan-medium.onnx`
 - `https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/zh/zh_CN/huayan/medium/zh_CN-huayan-medium.onnx.json`
+- `https://huggingface.co/rhasspy/piper-voices/resolve/main/zh/zh_CN/chaowen/medium/zh_CN-chaowen-medium.onnx`
+- `https://huggingface.co/rhasspy/piper-voices/resolve/main/zh/zh_CN/chaowen/medium/zh_CN-chaowen-medium.onnx.json`
+- `https://huggingface.co/rhasspy/piper-voices/resolve/main/zh/zh_CN/xiao_ya/medium/zh_CN-xiao_ya-medium.onnx`
+- `https://huggingface.co/rhasspy/piper-voices/resolve/main/zh/zh_CN/xiao_ya/medium/zh_CN-xiao_ya-medium.onnx.json`
 
-该音色的模型卡标明训练数据授权状态为 Unknown；如需商用，先核实音色授权。
+Chaowen 和 Xiao Ya 还需要中文拼音转换资源。下载 `https://huggingface.co/datasets/rhasspy/piper-checkpoints/resolve/main/zh/zh_CN/_resources/g2pw.tar.gz`，解压到 `models/piper/g2pW/`，确保其中有 `g2pw.onnx` 等文件。这个目录也不提交到 Git。
+
+镜像构建时会缓存 `bert-base-chinese` 分词器；运行时设置为离线模式，因此语音合成不依赖外网。
+
+Huayan 的模型卡标明训练数据授权状态为 Unknown；Xiao Ya 标明仅限非商用。各音色的授权应分别核实。
 
 ## 启动
 
@@ -26,7 +34,8 @@ docker compose -f docker-compose_all.yml -f docker-compose.fork.yml --profile lo
   "type": "custom",
   "method": "POST",
   "url": "http://piper-tts:5000/synthesize",
-  "params": {"text": "{prompt_text}"},
+  "params": {"text": "{prompt_text}", "voice": "{voice}"},
+  "voice": "zh_CN-huayan-medium",
   "headers": {},
   "format": "wav",
   "output_dir": "tmp/",
@@ -34,6 +43,6 @@ docker compose -f docker-compose_all.yml -f docker-compose.fork.yml --profile lo
 }
 ```
 
-然后在智能体上选用该模型和音色。Piper 这个中文模型只有一个音色；`tts_voice` 字段留空即可。将智能体 TTS 模型改回原先模型即可回退，Piper 容器不影响其他服务。
+然后在智能体上选用该模型和 Huayan、Chaowen、Xiao Ya 三个音色之一。`CustomTTS` 会把所选音色代码填入 `{voice}`。将智能体 TTS 模型改回原先模型即可回退，Piper 容器不影响其他服务。
 
 Piper HTTP 接口文档：https://github.com/OHF-Voice/piper1-gpl/blob/main/docs/API_HTTP.md
