@@ -6,7 +6,13 @@ from core.providers.tts.custom import TTSProvider as CustomTTSProvider
 class TTSProvider(CustomTTSProvider):
     def __init__(self, config, delete_audio_file):
         configured = config.copy()
-        selected = str(configured.get("private_voice") or configured.get("voice", ""))
+        selected = str(configured.get("private_voice") or "")
+        default_voice = str(configured.get("voice") or "")
+        if "|" not in selected and "|" in default_voice:
+            # A cached pre-migration speaker ID must not block ASR initialization.
+            selected = default_voice
+        elif not selected:
+            selected = default_voice
         model, separator, speaker_id = selected.partition("|")
         if not separator:
             model, speaker_id = configured.get("model"), selected

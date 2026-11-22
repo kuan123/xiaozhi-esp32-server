@@ -14,6 +14,13 @@ docker compose -f docker-compose_all.yml -f docker-compose.fork.yml --profile lo
 
 然后将 `register-sherpa-tts.sql` 导入部署用的 `xiaozhi_esp32_server` 数据库。SQL 开头设置 `utf8mb4` 连接字符集，会修复早期导入产生的中文乱码，并把原先八个独立的 Sherpa TTS 选项合并为一个；已有智能体的音色 ID 会保留。再次执行不会覆盖智能体选择。
 
+如果是在旧部署上重新导入 SQL，还要清除 Redis 中音色详情的旧缓存，然后重启主服务，使已连接的客户端重新读取配置：
+
+```sh
+docker exec xiaozhi-esp32-server-redis sh -c 'redis-cli --scan --pattern "timbre:details:TTS_Sherpa*" | xargs -r redis-cli DEL'
+docker restart xiaozhi-esp32-server
+```
+
 ## 模型说明
 
 | 架构 | 可选模型 | 说明 |
