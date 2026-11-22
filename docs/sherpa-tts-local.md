@@ -1,6 +1,6 @@
 # 本地 Sherpa ONNX TTS
 
-智控台中的 **Sherpa ONNX 本地语音** 是独立于 Piper 的 TTS 类型。可选择 Melo、Matcha、Kokoro 1.0/1.1 和 ZipVoice 中英双语模型；Kokoro 和 ZipVoice 的量化版本也单独列出，方便比较音质、速度和内存。Piper 的三个音色仍在 **Piper local Chinese** 中选择。
+智控台中的 **Sherpa ONNX 本地语音** 是一个独立于 Piper 的 TTS 选项。它的音色列表包含 Melo、Matcha、Kokoro 1.0/1.1 和 ZipVoice 中英双语模型；音色名标明版本及是否为 INT8，方便比较音质、速度和内存。Piper 的三个音色仍在 **Piper local Chinese** 中选择。
 
 服务启动时不加载 TTS 模型。首次使用某个模型时加载，切换模型时结束旧工作进程，空闲 120 秒后也自动卸载。Piper 同样只保留当前使用的一个音色，并在空闲 120 秒后卸载。模型文件保存在磁盘，不进入 Git 仓库或服务端镜像。
 
@@ -12,7 +12,7 @@ cd main/xiaozhi-server
 docker compose -f docker-compose_all.yml -f docker-compose.fork.yml --profile local-tts up -d --build sherpa-tts piper-tts xiaozhi-esp32-server
 ```
 
-然后将 `register-sherpa-tts.sql` 导入部署用的 `xiaozhi_esp32_server` 数据库。该 SQL 使用 `INSERT IGNORE`，再次执行不会覆盖智控台中的用户设置。
+然后将 `register-sherpa-tts.sql` 导入部署用的 `xiaozhi_esp32_server` 数据库。SQL 开头设置 `utf8mb4` 连接字符集，会修复早期导入产生的中文乱码，并把原先八个独立的 Sherpa TTS 选项合并为一个；已有智能体的音色 ID 会保留。再次执行不会覆盖智能体选择。
 
 ## 模型说明
 
