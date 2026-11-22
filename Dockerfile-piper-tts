@@ -1,0 +1,7 @@
+FROM docker.m.daocloud.io/library/python:3.11-slim
+
+RUN pip install --no-cache-dir 'piper-tts[http]==1.8.0'
+
+WORKDIR /models
+EXPOSE 5000
+CMD ["python", "-m", "piper.http_server", "-m", "zh_CN-huayan-medium", "--data-dir", "/models", "--host", "0.0.0.0", "--port", "5000"]

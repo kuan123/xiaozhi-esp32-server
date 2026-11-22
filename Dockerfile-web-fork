@@ -1,0 +1,4 @@
+FROM ghcr.nju.edu.cn/xinnan-tech/xiaozhi-esp32-server:web_latest@sha256:4480ada631d74ebd807e1b79aabdc21bd1903dfab4330705a9d0fc929302a05f
+
+COPY main/manager-web/dist/ /usr/share/nginx/html/
+COPY main/manager-api/target/xiaozhi-esp32-api.jar /app/xiaozhi-esp32-api.jar
