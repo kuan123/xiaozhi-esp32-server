@@ -31,3 +31,15 @@ services:
       - ./models/piper:/models:ro
     networks:
       - default
+
+  sherpa-tts:
+    build:
+      context: ../..
+      dockerfile: Dockerfile-sherpa-tts
+    image: xiaozhi-fork-sherpa-tts:2.0.3
+    profiles: ["local-tts"]
+    restart: unless-stopped
+    volumes:
+      - ./models/sherpa-tts:/models:ro
+    networks:
+      - default
