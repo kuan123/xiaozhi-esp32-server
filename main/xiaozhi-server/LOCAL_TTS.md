@@ -29,6 +29,12 @@ docker compose -f docker-compose_all.yml -f docker-compose.fork.yml --profile lo
 
 执行 `register-piper-tts.sql` 注册可选的 TTS 模型与音色，或者在智控台新增 TTS 模型并将模型代码选为 `CustomTTS`，配置：
 
+如果是从单音色版本升级，SQL 更新后清除旧的模型配置缓存，否则智控台可能已经选了新音色，服务端仍按旧配置调用默认音色：
+
+```sh
+docker exec xiaozhi-esp32-server-redis redis-cli DEL model:data:TTS_PiperLocal
+```
+
 ```json
 {
   "type": "custom",
