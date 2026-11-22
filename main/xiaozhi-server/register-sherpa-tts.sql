@@ -23,16 +23,8 @@ INSERT INTO ai_tts_voice (id, tts_model_id, name, tts_voice, languages, sort)
 VALUES
     ('TTS_SherpaMelo01', 'TTS_SherpaLocal', 'Melo 中英', 'vits-melo-tts-zh_en|0', '中文,English', 1),
     ('TTS_SherpaMatcha01', 'TTS_SherpaLocal', 'Matcha 中英', 'matcha-icefall-zh-en|0', '中文,English', 2),
-    ('TTS_SherpaKokoro1001', 'TTS_SherpaLocal', 'Kokoro 1.0 晓贝', 'kokoro-multi-lang-v1_0|45', '中文,English', 3),
-    ('TTS_SherpaKokoro1002', 'TTS_SherpaLocal', 'Kokoro 1.0 云剑', 'kokoro-multi-lang-v1_0|49', '中文,English', 4),
-    ('TTS_SherpaKokoro10I01', 'TTS_SherpaLocal', 'Kokoro 1.0 INT8 晓贝', 'kokoro-int8-multi-lang-v1_0|45', '中文,English', 5),
-    ('TTS_SherpaKokoro10I02', 'TTS_SherpaLocal', 'Kokoro 1.0 INT8 云剑', 'kokoro-int8-multi-lang-v1_0|49', '中文,English', 6),
-    ('TTS_SherpaKokoro1101', 'TTS_SherpaLocal', 'Kokoro 1.1 女001', 'kokoro-multi-lang-v1_1|3', '中文,English', 7),
-    ('TTS_SherpaKokoro1102', 'TTS_SherpaLocal', 'Kokoro 1.1 男009', 'kokoro-multi-lang-v1_1|58', '中文,English', 8),
-    ('TTS_SherpaKokoro11I01', 'TTS_SherpaLocal', 'Kokoro 1.1 INT8 女001', 'kokoro-int8-multi-lang-v1_1|3', '中文,English', 9),
-    ('TTS_SherpaKokoro11I02', 'TTS_SherpaLocal', 'Kokoro 1.1 INT8 男009', 'kokoro-int8-multi-lang-v1_1|58', '中文,English', 10),
-    ('TTS_SherpaZipDI01', 'TTS_SherpaLocal', 'ZipVoice INT8 示例', 'sherpa-onnx-zipvoice-distill-int8-zh-en-emilia|0', '中文,English', 11),
-    ('TTS_SherpaZipDF01', 'TTS_SherpaLocal', 'ZipVoice FP32 示例', 'sherpa-onnx-zipvoice-distill-fp32-zh-en-emilia|0', '中文,English', 12)
+    ('TTS_SherpaKokoro1101', 'TTS_SherpaLocal', 'Kokoro 1.1 女001', 'kokoro-multi-lang-v1_1|3', '中文,English', 3),
+    ('TTS_SherpaKokoro1102', 'TTS_SherpaLocal', 'Kokoro 1.1 男009', 'kokoro-multi-lang-v1_1|58', '中文,English', 4)
 ON DUPLICATE KEY UPDATE tts_model_id=VALUES(tts_model_id), name=VALUES(name),
                         tts_voice=VALUES(tts_voice), languages=VALUES(languages), sort=VALUES(sort);
 
@@ -48,7 +40,33 @@ WHERE tts_model_id IN ('TTS_SherpaMelo','TTS_SherpaMatcha','TTS_SherpaKokoro10',
                        'TTS_SherpaZipDistillInt8','TTS_SherpaZipDistillFp32',
                        'TTS_SherpaZipDistill','TTS_SherpaZip');
 
-DELETE FROM ai_tts_voice WHERE id IN ('TTS_SherpaZipD01','TTS_SherpaZip01');
+-- Keep the matching gender when retiring Kokoro 1.0 and quantized voices.
+UPDATE ai_agent SET tts_voice_id=CASE tts_voice_id
+    WHEN 'TTS_SherpaKokoro1001' THEN 'TTS_SherpaKokoro1101'
+    WHEN 'TTS_SherpaKokoro10I01' THEN 'TTS_SherpaKokoro1101'
+    WHEN 'TTS_SherpaKokoro11I01' THEN 'TTS_SherpaKokoro1101'
+    WHEN 'TTS_SherpaKokoro1002' THEN 'TTS_SherpaKokoro1102'
+    WHEN 'TTS_SherpaKokoro10I02' THEN 'TTS_SherpaKokoro1102'
+    WHEN 'TTS_SherpaKokoro11I02' THEN 'TTS_SherpaKokoro1102'
+    ELSE 'TTS_SherpaMelo01' END
+WHERE tts_model_id='TTS_SherpaLocal'
+  AND (tts_voice_id IS NULL OR tts_voice_id NOT IN
+       ('TTS_SherpaMelo01','TTS_SherpaMatcha01','TTS_SherpaKokoro1101','TTS_SherpaKokoro1102'));
+UPDATE ai_agent_template SET tts_voice_id=CASE tts_voice_id
+    WHEN 'TTS_SherpaKokoro1001' THEN 'TTS_SherpaKokoro1101'
+    WHEN 'TTS_SherpaKokoro10I01' THEN 'TTS_SherpaKokoro1101'
+    WHEN 'TTS_SherpaKokoro11I01' THEN 'TTS_SherpaKokoro1101'
+    WHEN 'TTS_SherpaKokoro1002' THEN 'TTS_SherpaKokoro1102'
+    WHEN 'TTS_SherpaKokoro10I02' THEN 'TTS_SherpaKokoro1102'
+    WHEN 'TTS_SherpaKokoro11I02' THEN 'TTS_SherpaKokoro1102'
+    ELSE 'TTS_SherpaMelo01' END
+WHERE tts_model_id='TTS_SherpaLocal'
+  AND (tts_voice_id IS NULL OR tts_voice_id NOT IN
+       ('TTS_SherpaMelo01','TTS_SherpaMatcha01','TTS_SherpaKokoro1101','TTS_SherpaKokoro1102'));
+
+DELETE FROM ai_tts_voice WHERE id LIKE 'TTS_Sherpa%'
+  AND id NOT IN ('TTS_SherpaMelo01','TTS_SherpaMatcha01',
+                 'TTS_SherpaKokoro1101','TTS_SherpaKokoro1102');
 DELETE FROM ai_model_config WHERE id IN (
     'TTS_SherpaMelo','TTS_SherpaMatcha','TTS_SherpaKokoro10',
     'TTS_SherpaKokoro10Int8','TTS_SherpaKokoro11','TTS_SherpaKokoro11Int8',

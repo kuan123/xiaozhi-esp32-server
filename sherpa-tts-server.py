@@ -15,14 +15,8 @@ ROOT = Path("/models")
 MODEL_KINDS = {
     "vits-melo-tts-zh_en": "vits",
     "matcha-icefall-zh-en": "matcha",
-    "kokoro-multi-lang-v1_0": "kokoro",
-    "kokoro-int8-multi-lang-v1_0": "kokoro",
     "kokoro-multi-lang-v1_1": "kokoro",
-    "kokoro-int8-multi-lang-v1_1": "kokoro",
-    "sherpa-onnx-zipvoice-distill-int8-zh-en-emilia": "zipvoice",
-    "sherpa-onnx-zipvoice-distill-fp32-zh-en-emilia": "zipvoice",
 }
-REFERENCE_TEXT = "那还是三十六年前, 一九八七年. 我呢考上了武汉大学的计算机系."
 IDLE_SECONDS = 120
 app = Flask(__name__)
 ctx = mp.get_context("spawn")
@@ -70,22 +64,13 @@ def make_tts(name):
             tokens=str(directory / "tokens.txt"),
             data_dir=str(directory / "espeak-ng-data"),
         )
-    elif kind == "kokoro":
+    else:
         config_kwargs["kokoro"] = sherpa_onnx.OfflineTtsKokoroModelConfig(
             model=one_file(directory, "model*.onnx"),
             voices=str(directory / "voices.bin"),
             tokens=str(directory / "tokens.txt"),
             lexicon=",".join(str(directory / f) for f in
                              ("lexicon-us-en.txt", "lexicon-zh.txt")),
-            data_dir=str(directory / "espeak-ng-data"),
-        )
-    else:
-        config_kwargs["zipvoice"] = sherpa_onnx.OfflineTtsZipvoiceModelConfig(
-            encoder=one_file(directory, "encoder*.onnx"),
-            decoder=one_file(directory, "decoder*.onnx"),
-            vocoder=str(ROOT / "vocos_24khz.onnx"),
-            tokens=str(directory / "tokens.txt"),
-            lexicon=f"{directory / 'lexicon.txt'},{ROOT / 'lexicon-en-us.txt'}",
             data_dir=str(directory / "espeak-ng-data"),
         )
     config = sherpa_onnx.OfflineTtsConfig(
@@ -102,9 +87,7 @@ def run_worker(connection, name):
     try:
         import numpy as np
         import sherpa_onnx
-        import soundfile as sf
 
-        kind = MODEL_KINDS[name]
         tts = make_tts(name)
         connection.send(("ready", None))
         while True:
@@ -112,14 +95,6 @@ def run_worker(connection, name):
             gen = sherpa_onnx.GenerationConfig()
             gen.sid = sid
             gen.speed = 1.0
-            if kind == "zipvoice":
-                reference_path = ROOT / name / "test_wavs" / "leijun-1.wav"
-                reference, sample_rate = sf.read(reference_path, dtype="float32")
-                gen.reference_audio = reference[:, 0] if reference.ndim > 1 else reference
-                gen.reference_sample_rate = sample_rate
-                gen.reference_text = REFERENCE_TEXT
-                gen.num_steps = 4
-                gen.extra["min_char_in_sentence"] = "30"
             audio = tts.generate(text, gen)
             if len(audio.samples) == 0:
                 raise RuntimeError("Sherpa returned empty audio")

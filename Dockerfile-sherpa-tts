@@ -1,6 +1,6 @@
 FROM docker.m.daocloud.io/library/python:3.11-slim
 
-RUN pip install --no-cache-dir 'sherpa-onnx==2.0.3' 'flask==3.1.2' 'soundfile==0.13.1'
+RUN pip install --no-cache-dir 'sherpa-onnx==2.0.3' 'flask==3.1.2' 'numpy==2.4.6'
 
 WORKDIR /models
 COPY sherpa-tts-server.py /opt/sherpa-tts-server.py
